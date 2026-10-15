@@ -1,5 +1,5 @@
 <?php
-// backend/app/Models/Product.php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -10,13 +10,13 @@ class Product extends Model
     protected $fillable = [
         'supplier_id', 
         'category_id', 
-        'name',           // <- Bổ sung tên sản phẩm
+        'name',           // Tên sản phẩm
         'title', 
         'slug',
         'type', 
-        'price',          // <- Bổ sung cột price
-        'base_price', 
-        'stock',          // <- QUAN TRỌNG: Đã thêm cột tồn kho
+        'price',          // Giá bán
+        'base_price',     // Giá gốc
+        'stock',          // Số lượng tồn kho
         'duration_days', 
         'capacity', 
         'cancel_policy', 
@@ -24,10 +24,10 @@ class Product extends Model
         'is_featured', 
         'is_discount', 
         'discount_price',
-        'origin',         // <- Bổ sung xuất xứ/nguồn gốc
-        'location',       // <- Vị trí
-        'image',          // <- Đường dẫn ảnh sản phẩm
-        'description',    // <- Bổ sung mô tả chi tiết
+        'origin',         // Xuất xứ / Nguồn gốc
+        'location',       // Tỉnh thành / Vị trí
+        'image',          // Đường dẫn ảnh sản phẩm
+        'description',    // Mô tả chi tiết
     ];
 
     protected $casts = [
@@ -40,19 +40,48 @@ class Product extends Model
         'is_discount'    => 'boolean',
     ];
 
-    // Accessor: Tự động dùng 'title' nếu 'name' bị trống hoặc ngược lại
+    // --- Accessors & Mutators ---
+
+    /**
+     * Tự động dùng 'title' nếu 'name' bị trống hoặc ngược lại
+     */
     public function getNameAttribute($value)
     {
         return $value ?? $this->attributes['title'] ?? 'Sản phẩm chưa đặt tên';
     }
 
-    // Accessor: Tự động dùng 'base_price' nếu 'price' bị trống
+    /**
+     * Tự động dùng 'base_price' nếu 'price' bị trống
+     */
     public function getPriceAttribute($value)
     {
         return $value ?? $this->attributes['base_price'] ?? 0;
     }
 
+    // --- Accessors Truy xuất nguồn gốc (QR Code) ---
+
+    /**
+     * Tự động tạo mã tem QR định danh cho từng sản phẩm (VD: TX-8-2026)
+     */
+    public function getQrCodeAttribute()
+    {
+        return 'TX-' . $this->id . '-2026';
+    }
+
+    /**
+     * Tự động sinh link tra cứu trực tiếp tới route /truy-xuat/{code}
+     */
+    public function getQrUrlAttribute()
+    {
+        try {
+            return route('traceability.show', $this->qr_code);
+        } catch (\Throwable $e) {
+            return url('/truy-xuat/' . $this->qr_code);
+        }
+    }
+
     // --- Các quan hệ Eloquent (Relationships) ---
+
     public function supplier() 
     { 
         return $this->belongsTo(Supplier::class); 
@@ -60,7 +89,7 @@ class Product extends Model
 
     public function category() 
     { 
-        return $this->belongsTo(Category::class); 
+        return $this->belongsTo(Category::class, 'category_id'); 
     }
 
     public function itineraries() 
@@ -84,10 +113,20 @@ class Product extends Model
     }
 
     // --- Bộ lọc đa tiêu chí (Local Scope) ---
+
     public function scopeFilter(Builder $q, array $f): Builder
     {
         return $q->where('status', 'published')
-            ->when($f['keyword'] ?? null, fn ($q, $v) => $q->where('title', 'like', "%{$v}%")->orWhere('name', 'like', "%{$v}%"))
+            ->when($f['keyword'] ?? null, fn ($q, $v) => $q->where(function($sub) use ($v) {
+                $sub->where('title', 'like', "%{$v}%")
+                    ->orWhere('name', 'like', "%{$v}%");
+            }))
+            ->when($f['category'] ?? null, function ($q, $v) {
+                $q->where(function ($catQuery) use ($v) {
+                    $catQuery->whereHas('category', fn ($c) => $c->where('slug', $v)->orWhere('id', $v))
+                             ->orWhere('category_id', $v);
+                });
+            })
             ->when($f['type'] ?? null, fn ($q, $v) => $q->where('type', $v))
             ->when($f['price_min'] ?? null, fn ($q, $v) => $q->where('base_price', '>=', $v))
             ->when($f['price_max'] ?? null, fn ($q, $v) => $q->where('base_price', '<=', $v))

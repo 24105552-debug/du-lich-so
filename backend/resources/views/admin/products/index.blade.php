@@ -35,6 +35,7 @@
                             <tr class="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                                 <th class="px-4 py-3">ID</th>
                                 <th class="px-4 py-3">Tên sản phẩm</th>
+                                <th class="px-4 py-3">Mã Truy Xuất (QR)</th>
                                 <th class="px-4 py-3">Giá gốc</th>
                                 <th class="px-4 py-3">Giá giảm</th>
                                 <th class="px-4 py-3 text-center">Tồn kho</th>
@@ -48,6 +49,12 @@
                                     <td class="px-4 py-3 font-semibold">{{ $product->id }}</td>
                                     <td class="px-4 py-3 font-medium text-gray-900">
                                         {{ $product->title ?? $product->name }}
+                                    </td>
+                                    <!-- Cột Mã Truy Xuất QR -->
+                                    <td class="px-4 py-3">
+                                        <a href="{{ $product->qr_url }}" target="_blank" class="inline-flex items-center gap-1 font-mono font-bold text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 px-2.5 py-1 rounded-lg transition" title="Bấm để xem trang truy xuất">
+                                            🔍 {{ $product->qr_code }}
+                                        </a>
                                     </td>
                                     <td class="px-4 py-3">{{ number_format($product->base_price ?? $product->price) }}đ</td>
                                     <td class="px-4 py-3">
@@ -72,6 +79,11 @@
                                         </form>
                                     </td>
                                     <td class="px-4 py-3 text-right space-x-2">
+                                        <!-- Nút Xem QR -->
+                                        <a href="{{ $product->qr_url }}" target="_blank" class="inline-block text-emerald-600 hover:text-emerald-800 font-semibold text-xs bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1.5 rounded-lg transition">
+                                            Tra cứu
+                                        </a>
+
                                         <!-- Nút Sửa -->
                                         <a href="{{ route('admin.products.edit', $product->id) }}" class="inline-block text-indigo-600 hover:text-indigo-800 font-semibold text-xs bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition">
                                             Sửa
@@ -89,7 +101,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="px-4 py-8 text-center text-gray-400">Chưa có sản phẩm nào trong hệ thống.</td>
+                                    <td colspan="8" class="px-4 py-8 text-center text-gray-400">Chưa có sản phẩm nào trong hệ thống.</td>
                                 </tr>
                             @endforelse
                         </tbody>

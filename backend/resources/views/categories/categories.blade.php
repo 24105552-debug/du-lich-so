@@ -59,48 +59,132 @@
         <img src="{{ asset('images/logo.png') }}" alt="Logo Đặc sản Việt" style="height: 70px; width: auto; object-fit: contain;">
     </a>
 
-    <!-- Menu Điều Hướng -->
+    <!-- Menu Điều Hướng Giống Chuẩn Trang Chủ -->
     <nav class="nav s6">
         <a href="{{ url('/') }}" class="{{ request()->is('/') ? 's7' : '' }}">Trang chủ</a>
         <a href="{{ route('categories.index') }}" class="{{ request()->routeIs('categories.index') ? 's7' : '' }}">Danh mục</a>
         <a href="{{ route('traceability.index') }}" class="{{ request()->routeIs('traceability.index') ? 's7' : '' }}">Truy xuất</a>
+        @auth
+            <a href="{{ route('orders.index') }}" class="text-sm font-semibold text-gray-700 hover:text-indigo-600 transition">
+                📦 Đơn hàng của tôi
+            </a>
+        @else
+            <a href="{{ route('login') }}" class="text-sm font-semibold text-gray-700 hover:text-indigo-600 transition">
+                Đăng nhập
+            </a>
+        @endauth
     </nav>
 
-    <!-- Nút Hành Động -->
+    <!-- Nút Hành Động Đồng Bộ Với Trang Chủ -->
     <div class="s8">
         <button class="s9" aria-label="Tìm kiếm">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#17261E" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
         </button>
-        <button class="s9" aria-label="Giỏ hàng">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#17261E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.5 11h10L20 7H6"/><circle cx="9" cy="19" r="1.3"/><circle cx="17" cy="19" r="1.3"/></svg>
-        </button>
-        <a href="{{ route('admin.dashboard') }}" class="s10" aria-label="Tài khoản" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>
+
+        <!-- NÚT GIỎ HÀNG TRÒN CÓ BADGE SỐ LƯỢNG MÀU ĐỎ -->
+        @php 
+            $cartCount = array_sum(array_column(session('cart', []), 'quantity')); 
+        @endphp
+        <a href="{{ route('cart.index') }}" class="s9" aria-label="Giỏ hàng" style="position: relative; display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#17261E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 4h2l2.5 11h10L20 7H6"/><circle cx="9" cy="19" r="1.3"/><circle cx="17" cy="19" r="1.3"/>
+            </svg>
+            @if($cartCount > 0)
+                <span style="position: absolute; top: -4px; right: -4px; background-color: #EF4444; color: #FFFFFF; font-size: 10px; font-weight: 800; border-radius: 99px; min-width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; padding: 0 4px; border: 2px solid #FFFFFF; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                    {{ $cartCount }}
+                </span>
+            @endif
         </a>
+
+        @auth
+            {{-- Đã đăng nhập: Nút tài khoản màu xanh lục đậm --}}
+            <a href="{{ route('dashboard') }}" class="s10" aria-label="Tài khoản" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>
+            </a>
+        @else
+            {{-- Chưa đăng nhập --}}
+            <a href="{{ route('login') }}" class="s10" aria-label="Tài khoản" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>
+            </a>
+        @endauth
     </div>
 </div>
 </header>
 
 <!-- NỘI DUNG DANH MỤC SẢN PHẨM -->
 <section class="s28" style="padding: 40px 16px;">
-<div style="max-width: 1200px; margin: 0 auto;">
-    
-    <div style="text-align: center; margin-bottom: 36px;">
-        <span class="s30">KHÁM PHÁ ĐẶC SẢN</span>
-        <h1 class="s31" style="font-size: 32px; margin-top: 8px;">Danh Mục Sản Phẩm Cội Nguồn</h1>
-        <p style="color: #64748B; margin-top: 8px; font-size: 15px;">Tuyển chọn đặc sản đạt chuẩn OCOP và sản phẩm làng nghề truyền thống ba miền</p>
-    </div>
+    <div style="max-width: 1200px; margin: 0 auto;">
 
-    <!-- Grid Phân Loại Theo Vùng Miền -->
-    <div style="margin-bottom: 48px;">
-        <h2 style="font-size: 20px; font-weight: 700; color: #0B3B2C; margin-bottom: 20px;">1. Theo Vùng Miền</h2>
-        <div class="grid4 s32">
-            <a href="#" class="cat s33"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#1E4D3B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20l7-12 4 7 3-4 6 9z"/></svg><div class="s34"><span>Đặc sản<br>miền Bắc</span><span class="s35">→</span></div></a>
-            <a href="#" class="cat s36"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#8A5A12" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-5 9 5M5 9v9M9.5 9v9M14.5 9v9M19 9v9M3 20h18"/></svg><div class="s34"><span>Đặc sản<br>miền Trung</span><span class="s35">→</span></div></a>
-            <a href="#" class="cat s37"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#1F5A70" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V8M12 8c-1-3-4-4-7-3 2 0 4 1 5 3M12 8c1-3 4-4 7-3-2 0-4 1-5 3M4 21h16"/></svg><div class="s34"><span>Đặc sản<br>miền Nam</span><span class="s35">→</span></div></a>
-            <a href="#" class="cat s38"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#9A4A32" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="11" rx="1"/><path d="M2 9h20v-3H2zM12 6v14M12 6c-1-3-5-3-5 0M12 6c1-3 5-3 5 0"/></svg><div class="s34"><span>Quà<br>lưu niệm</span><span class="s35">→</span></div></a>
+        <!-- Khối Tiêu Đề & Thanh Tìm Kiếm Căn Giữa Duy Nhất -->
+        <div style="text-align: center; margin-bottom: 48px;">
+            <span class="s30" style="color: #E5B252; font-weight: 700; text-transform: uppercase; font-size: 14px; letter-spacing: 1px;">KHÁM PHÁ ĐẶC SẢN</span>
+            <h1 class="s31" style="font-size: 32px; font-weight: 800; color: #0B3B2C; margin-top: 8px;">Danh Mục Sản Phẩm Cội Nguồn</h1>
+            <p style="color: #64748B; margin-top: 8px; font-size: 15px;">Tuyển chọn đặc sản đạt chuẩn OCOP và sản phẩm làng nghề truyền thống ba miền</p>
+
+            <!-- Thanh Tìm Kiếm -->
+            <form action="{{ route('categories.index') }}" method="GET" style="max-width: 620px; margin: 24px auto 0 auto;">
+                @if(request('category'))
+                    <input type="hidden" name="category" value="{{ request('category') }}">
+                @endif
+
+                <div style="display: flex; align-items: center; background: #FFFFFF; border-radius: 50px; padding: 5px 6px 5px 20px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); border: 1px solid #E5E7EB;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 12px; flex-shrink: 0;">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+
+                    <input type="text" 
+                           name="q" 
+                           value="{{ request('q') }}" 
+                           placeholder="Tìm kiếm đặc sản, sản phẩm.." 
+                           style="border: none; outline: none; flex: 1; font-size: 15px; color: #1F2937; background: transparent; padding: 10px 0;">
+
+                    <button type="submit" 
+                            style="background: #E5B252; color: #0B3B2C; border: none; border-radius: 50px; padding: 11px 28px; font-weight: 700; font-size: 15px; cursor: pointer; transition: all 0.2s ease; white-space: nowrap; margin-left: 8px;">
+                        Tìm kiếm
+                    </button>
+                </div>
+            </form>
         </div>
-    </div>
+        @php
+            $currentCategory = request('category');
+        @endphp
+        <div style="margin-bottom: 48px;">
+            <h2 style="font-size: 20px; font-weight: 700; color: #0B3B2C; margin-bottom: 20px;">1. Theo Vùng Miền</h2>
+            <div class="grid4 s32">
+                <!-- 1. Miền Bắc -->
+                <a href="{{ request()->url() }}?category=dac-san-mien-bac" 
+                   class="cat s33" 
+                   style="{{ $currentCategory == 'dac-san-mien-bac' ? 'border: 2px solid #000000 !important;' : '' }}">
+                   <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#1E4D3B" stroke-width="1.6"><path d="M3 20l7-12 4 6 3-4 4 10H3z"/></svg>
+                   <span>Đặc sản<br>miền Bắc</span>
+                </a>
+
+                <!-- 2. Miền Trung -->
+                <a href="{{ request()->url() }}?category=dac-san-mien-trung" 
+                   class="cat s36" 
+                   style="{{ $currentCategory == 'dac-san-mien-trung' ? 'border: 2px solid #000000 !important;' : '' }}">
+                   <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#8A5A12" stroke-width="1.6"><path d="M4 20h16M12 4v16M8 8h8M8 12h8"/></svg>
+                   <span>Đặc sản<br>miền Trung</span>
+                </a>
+
+                <!-- 3. Miền Nam -->
+                <a href="{{ request()->url() }}?category=dac-san-mien-nam" 
+                   class="cat s37" 
+                   style="{{ $currentCategory == 'dac-san-mien-nam' ? 'border: 2px solid #000000 !important;' : '' }}">
+                   <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#1F5A70" stroke-width="1.6"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                   <span>Đặc sản<br>miền Nam</span>
+                </a>
+
+                <!-- 4. Quà lưu niệm -->
+                <a href="{{ request()->url() }}?category=qua-luu-niem" 
+                   class="cat s38" 
+                   style="{{ $currentCategory == 'qua-luu-niem' ? 'border: 2px solid #000000 !important;' : '' }}">
+                   <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#9A4A32" stroke-width="1.6"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M12 8v12M3 12h18"/></svg>
+                   <span>Quà<br>lưu niệm</span>
+                </a>
+            </div>
+        </div>
 
     <!-- KHỐI HIỂN THỊ TẤT CẢ SẢN PHẨM TỪ DATABASE -->
     <div style="margin-top: 48px;">
@@ -111,9 +195,15 @@
         <div class="grid4 s32">
             @forelse($products as $product)
                 <div class="card">
-                    <div class="ph s42">
-                        <span class="badge">Đã xác minh</span>
-                        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                    <!-- Ảnh sản phẩm từ Storage -->
+                    <div class="ph s42" style="position: relative; overflow: hidden; height: 180px; display: flex; align-items: center; justify-content: center; background: #F1F5F9;">
+                        <span class="badge" style="position: absolute; top: 10px; right: 10px; z-index: 2;">Đã xác minh</span>
+
+                        @if(!empty($product->image))
+                            <img src="{{ asset('storage/' . ltrim($product->image, '/')) }}" alt="{{ $product->title }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        @else
+                            <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                        @endif
                     </div>
                     <div class="s43">
                         <b class="s44">{{ $product->title }}</b>

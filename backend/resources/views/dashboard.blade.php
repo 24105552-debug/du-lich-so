@@ -5,6 +5,9 @@
         </h2>
     </x-slot>
 
+    <!-- Nhúng thư viện Chart.js qua CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
             
@@ -21,8 +24,80 @@
                 </div>
             </div>
 
-            <!-- Khối Chức năng Quản trị Nhanh (Chỉ hiển thị cho tài khoản Admin) -->
             @if(Auth::user()?->role === 'admin')
+            <!-- ================= KHỐI THỐNG KÊ VÀ BIỂU ĐỒ QUẢN TRỊ ================= -->
+            
+            <!-- 1. CÁC THẺ CHỈ SỐ KPI -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Thẻ Doanh Thu -->
+                <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Tổng doanh thu</p>
+                        <h4 class="text-2xl font-extrabold text-emerald-600 mt-1">15.450.000đ</h4>
+                    </div>
+                    <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center text-xl">
+                        💰
+                    </div>
+                </div>
+
+                <!-- Thẻ Đơn Hàng -->
+                <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Tổng đơn hàng</p>
+                        <h4 class="text-2xl font-extrabold text-indigo-600 mt-1">24 đơn</h4>
+                    </div>
+                    <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center text-xl">
+                        📦
+                    </div>
+                </div>
+
+                <!-- Thẻ Sản Phẩm -->
+                <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Sản phẩm / Tour</p>
+                        <h4 class="text-2xl font-extrabold text-amber-600 mt-1">8 sản phẩm</h4>
+                    </div>
+                    <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center text-xl">
+                        🛒
+                    </div>
+                </div>
+
+                <!-- Thẻ Khách Hàng -->
+                <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Khách hàng</p>
+                        <h4 class="text-2xl font-extrabold text-sky-600 mt-1">12 người</h4>
+                    </div>
+                    <div class="w-12 h-12 bg-sky-50 text-sky-600 rounded-lg flex items-center justify-center text-xl">
+                        👥
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. KHỐI BIỂU ĐỒ BÁO CÁO -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Biểu đồ Doanh Thu -->
+                <div class="lg:col-span-2 bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+                    <h4 class="text-base font-bold text-gray-900 mb-4 flex items-center">
+                        📈 Biểu đồ tăng trưởng doanh thu tuần
+                    </h4>
+                    <div class="relative h-64">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Biểu đồ Trạng Thái Đơn -->
+                <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+                    <h4 class="text-base font-bold text-gray-900 mb-4 flex items-center">
+                        📊 Tỷ lệ trạng thái đơn hàng
+                    </h4>
+                    <div class="relative h-64 flex items-center justify-center">
+                        <canvas id="orderStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. LỐI TẮT CHỨC NĂNG QUẢN TRỊ -->
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                 <h4 class="text-base font-semibold text-gray-900 border-b pb-3 mb-4 flex items-center">
                     <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -121,4 +196,62 @@
 
         </div>
     </div>
+
+    <!-- SCRIPT TẠO BIỂU ĐỒ -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // 1. Biểu đồ Doanh Thu
+            const elRevenue = document.getElementById('revenueChart');
+            if (elRevenue) {
+                new Chart(elRevenue.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+                        datasets: [{
+                            label: 'Doanh thu (VNĐ)',
+                            data: [1200000, 1900000, 3000000, 2500000, 2200000, 3000000, 1650000],
+                            borderColor: '#10B981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.35,
+                            pointBackgroundColor: '#10B981',
+                            pointRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { beginAtZero: true, grid: { color: '#F1F5F9' } },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                });
+            }
+
+            // 2. Biểu đồ Trạng Thái Đơn
+            const elStatus = document.getElementById('orderStatusChart');
+            if (elStatus) {
+                new Chart(elStatus.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Hoàn thành', 'Chờ duyệt', 'Đang xử lý', 'Đã hủy'],
+                        datasets: [{
+                            data: [12, 5, 4, 3],
+                            backgroundColor: ['#10B981', '#F59E0B', '#3B82F6', '#EF4444'],
+                            borderWidth: 2,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+            }
+        });
+    </script>
 </x-app-layout>

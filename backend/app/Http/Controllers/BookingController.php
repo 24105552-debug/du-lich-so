@@ -50,24 +50,40 @@ class BookingController extends Controller
             $totalSeats = $remainingSeats + $bookedSeats;
         }
 
+        // 3. Truy vấn danh sách 4 sản phẩm gợi ý (bỏ qua sản phẩm hiện tại)
+        $recommendedProducts = collect();
+        if (Schema::hasTable('products')) {
+            $recommendedProducts = Product::where('id', '!=', $id)
+                ->inRandomOrder()
+                ->take(4)
+                ->get();
+
+            // Nếu danh sách rỗng (ví dụ CSDL chỉ có 1 sản phẩm), lấy ngẫu nhiên tất cả sản phẩm hiện có
+            if ($recommendedProducts->isEmpty()) {
+                $recommendedProducts = Product::take(4)->get();
+            }
+        }
+
         // Kiểm tra tình trạng sản phẩm còn hàng hay không
         $availability = $remainingSeats > 0;
 
         // Trả về JSON nếu là request API / AJAX
         if (request()->wantsJson() || request()->ajax()) {
             return response()->json([
-                'status'         => 'success',
-                'data'           => $product,
-                'availability'   => $availability,
-                'totalSeats'     => $totalSeats,
-                'bookedSeats'    => $bookedSeats,
-                'remainingSeats' => $remainingSeats
+                'status'              => 'success',
+                'data'                => $product,
+                'recommendedProducts' => $recommendedProducts,
+                'availability'        => $availability,
+                'totalSeats'          => $totalSeats,
+                'bookedSeats'         => $bookedSeats,
+                'remainingSeats'      => $remainingSeats
             ]);
         }
 
-        // 3. Trả về View giao diện chi tiết sản phẩm quà lưu niệm
+        // 4. Trả về View giao diện chi tiết sản phẩm (Đã truyền thêm $recommendedProducts)
         return view('products.show', compact(
             'product',
+            'recommendedProducts',
             'availability',
             'totalSeats',
             'bookedSeats',

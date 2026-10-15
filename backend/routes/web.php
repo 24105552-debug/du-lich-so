@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Models\Product;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
@@ -12,47 +13,53 @@ use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\AdminOrderController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\TraceabilityController;
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes - Dự án Du Lịch Số
+| Web Routes - Dự án Du Lịch Số & Đặc Sản Việt
 |--------------------------------------------------------------------------
 */
 
-// Trang chủ
+// Trang chủ (Lấy đủ Sản phẩm Nổi bật, Giảm giá & Gợi ý)
 Route::get('/', function () {
     $featuredProducts = Product::where('is_featured', true)->latest()->take(8)->get();
     $discountProducts = Product::where('is_discount', true)->orWhereNotNull('discount_price')->latest()->take(8)->get();
+    
+    // Bổ sung 4 sản phẩm gợi ý cho khối AI Powered
+    $recommendedProducts = Product::inRandomOrder()->take(4)->get();
 
-    return view('welcome', compact('featuredProducts', 'discountProducts'));
+    return view('welcome', compact('featuredProducts', 'discountProducts', 'recommendedProducts'));
 });
 
 // Route Danh mục sản phẩm
-Route::get('/danh-muc', function () {
-    $products = Product::latest()->paginate(12);
-
-    return view('categories.categories', compact('products'));
-})->name('categories.index');
+Route::get('/danh-muc', [ProductController::class, 'index'])->name('categories.index');
 
 // Route Truy xuất nguồn gốc
-Route::get('/truy-xuat', function () {
-    return view('traceability.traceability');
-})->name('traceability.index');
+Route::get('/truy-xuat', [TraceabilityController::class, 'index'])->name('traceability.index');
+Route::get('/truy-xuat/{code}', [TraceabilityController::class, 'show'])->name('traceability.show');
 
-// Route xem chi tiết sản phẩm / đặt chỗ
+// Route Xem chi tiết sản phẩm
 Route::get('/san-pham/{id}', [BookingController::class, 'showProduct'])->name('products.show');
 
-// Route Giao diện Đặt vé Test (GET) & Route Xử lý Submit Form (POST)
+// Route Quản lý Giỏ hàng (Shopee Style)
+Route::prefix('gio-hang')->name('cart.')->group(function () {
+    Route::get('/', [CartController::class, 'index'])->name('index');
+    Route::post('/them/{id}', [CartController::class, 'add'])->name('add');
+    Route::patch('/cap-nhat', [CartController::class, 'update'])->name('update');
+    Route::delete('/xoa', [CartController::class, 'remove'])->name('remove');
+});
+
+// Route Đặt vé & Booking
 Route::get('/dat-ve', function () {
     return view('booking-test');
 })->name('bookings.test');
 
 Route::post('/dat-ve', [BookingController::class, 'store'])->name('bookings.store');
-
-// Route Alias hỗ trợ kiểm thử API AJAX / Curl
 Route::post('/api/v1/bookings', [BookingController::class, 'store']);
 
-// Tra cứu đơn hàng bằng Token đã mã hóa & Tải hóa đơn Signed Route
+// Tra cứu đơn hàng & Tải hóa đơn
 Route::get('/tra-cuu/{token}', [BookingController::class, 'lookup'])->name('bookings.lookup');
 Route::get('/hoa-don/{booking}', [BookingController::class, 'downloadInvoice'])
     ->name('invoice.download')
@@ -78,13 +85,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/don-hang', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/don-hang/{id}/thanh-toan-qr', [OrderController::class, 'paymentQr'])->name('orders.payment_qr');
     Route::post('/don-hang/{id}/upload-minh-chung', [OrderController::class, 'uploadProof'])->name('orders.upload_proof');
-    
-    // Đơn hàng chi tiết & Hủy đơn
     Route::get('/don-hang/{id}', [OrderController::class, 'show'])->name('orders.show');
     Route::post('/don-hang/{id}/huy', [OrderController::class, 'cancel'])->name('orders.cancel');
 });
 
-// Nhóm dành riêng cho Admin
+// Nhóm Admin
 Route::middleware(['auth', 'role:admin'])->prefix('quan-tri')->group(function () {
     Route::get('/bang-dieu-khien', [DashboardController::class, 'index'])->name('admin.dashboard');
 
@@ -103,12 +108,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('quan-tri')->group(function ()
     Route::delete('/nguoi-dung/{id}', [AdminUserController::class, 'destroy'])->name('admin.users.destroy');
     Route::put('/nguoi-dung/{id}/doi-mat-khau', [AdminUserController::class, 'updatePassword'])->name('admin.users.update-password');
 
-    // Quản lý Đơn hàng dành cho Admin (Đã đổi name thành admin.orders.updateStatus)
+    // Quản lý Đơn hàng
     Route::get('/don-hang', [AdminOrderController::class, 'index'])->name('admin.orders.index');
     Route::match(['post', 'patch'], '/don-hang/{id}/cap-nhat-trang-thai', [AdminOrderController::class, 'updateStatus'])->name('admin.orders.updateStatus');
 });
 
-// Nhóm dành cho Supplier và Admin
+// Nhóm Supplier và Admin
 Route::middleware(['auth', 'role:supplier,admin'])->prefix('nha-cung-cap')->group(function () {
     Route::get('/don-hang', [SupplierBookingController::class, 'index']);
 });
@@ -120,3 +125,6 @@ Route::middleware('guest')->group(function () {
 });
 
 require __DIR__ . '/auth.php';
+Route::get('/check-php', function () {
+    phpinfo();
+});
