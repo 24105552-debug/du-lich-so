@@ -19,6 +19,12 @@
         </div>
     </x-slot>
 
+    @php
+        $total = collect($items)->sum('subtotal');
+        $shippingFee = 0;
+        $grandTotal = $total + $shippingFee;
+    @endphp
+
     <div class="py-8 bg-slate-50/70 min-h-[calc(100vh-80px)]">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
@@ -31,12 +37,17 @@
 
             <form action="{{ route('checkout.process') }}" method="POST" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 @csrf
-                <input type="hidden" name="product_id" value="{{ $product->id }}">
-                <input type="hidden" name="quantity" value="{{ $quantity }}">
+                @foreach($items as $i => $item)
+                    <input type="hidden" name="items[{{ $i }}][product_id]" value="{{ $item['product']->id }}">
+                    <input type="hidden" name="items[{{ $i }}][quantity]" value="{{ $item['quantity'] }}">
+                @endforeach
+                @if($fromCart ?? false)
+                    <input type="hidden" name="from_cart" value="1">
+                @endif
 
                 <!-- CỘT TRÁI: THÔNG TIN GIAO HÀNG & THANH TOÁN (7 CỘT) -->
                 <div class="lg:col-span-7 space-y-6">
-                    
+
                     <!-- Box 1: Thông tin liên hệ -->
                     <div class="bg-white p-6 sm:p-8 rounded-2xl border border-gray-200/80 shadow-sm space-y-5">
                         <div class="flex items-center gap-3 pb-4 border-b border-gray-100">
@@ -116,44 +127,42 @@
                     <div class="bg-white p-6 sm:p-8 rounded-2xl border border-gray-200/80 shadow-sm sticky top-6">
                         <h3 class="text-lg font-extrabold text-gray-900 pb-4 border-b border-gray-100 flex items-center justify-between">
                             <span>Đơn hàng của bạn</span>
-                            <span class="text-xs font-semibold px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg">1 sản phẩm</span>
+                            <span class="text-xs font-semibold px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg">{{ count($items) }} sản phẩm</span>
                         </h3>
 
-                        <!-- Chi tiết sản phẩm -->
-                        <div class="py-5 border-b border-gray-100 flex gap-4">
-                            <div class="w-20 h-20 bg-gray-100 rounded-xl overflow-hidden border border-gray-200 flex-shrink-0">
-                                @if(!empty($product->image))
-                                    <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->title ?? $product->name }}" class="w-full h-full object-cover">
-                                @else
-                                    <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50 text-indigo-400 text-xs font-bold">Nông Sản</div>
-                                @endif
-                            </div>
-                            <div class="flex-1 min-w-0 flex flex-col justify-between">
-                                <div>
-                                    <h4 class="text-sm font-bold text-gray-900 line-clamp-2 leading-snug">{{ $product->title ?? $product->name }}</h4>
-                                    <p class="text-xs text-gray-500 mt-1">Xuất xứ: <span class="font-medium text-gray-700">{{ $product->location ?? 'Chính hãng' }}</span></p>
+                        <!-- Danh sách sản phẩm -->
+                        <div class="divide-y divide-gray-100 max-h-[420px] overflow-y-auto">
+                            @foreach($items as $item)
+                                @php $product = $item['product']; @endphp
+                                <div class="py-5 flex gap-4">
+                                    <div class="w-20 h-20 bg-gray-100 rounded-xl overflow-hidden border border-gray-200 flex-shrink-0">
+                                        @if(!empty($product->image))
+                                            <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->title ?? $product->name }}" class="w-full h-full object-cover">
+                                        @else
+                                            <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50 text-indigo-400 text-xs font-bold">Nông Sản</div>
+                                        @endif
+                                    </div>
+                                    <div class="flex-1 min-w-0 flex flex-col justify-between">
+                                        <div>
+                                            <h4 class="text-sm font-bold text-gray-900 line-clamp-2 leading-snug">{{ $product->title ?? $product->name }}</h4>
+                                            <p class="text-xs text-gray-500 mt-1">Xuất xứ: <span class="font-medium text-gray-700">{{ $product->location ?? 'Chính hãng' }}</span></p>
+                                        </div>
+                                        <div class="flex justify-between items-center mt-2">
+                                            <span class="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md">x{{ $item['quantity'] }}</span>
+                                            <span class="text-sm font-extrabold text-indigo-600">
+                                                {{ number_format($item['unit_price']) }}đ
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="flex justify-between items-center mt-2">
-                                    <span class="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md">x{{ $quantity }}</span>
-                                    <span class="text-sm font-extrabold text-indigo-600">
-                                        {{ number_format($product->discount_price ?? $product->base_price ?? $product->price) }}đ
-                                    </span>
-                                </div>
-                            </div>
+                            @endforeach
                         </div>
 
                         <!-- Bảng tính tiền -->
-                        @php
-                            $unitPrice = $product->discount_price ?? $product->base_price ?? $product->price;
-                            $subtotal = $unitPrice * $quantity;
-                            $shippingFee = 0;
-                            $total = $subtotal + $shippingFee;
-                        @endphp
-
-                        <div class="py-4 space-y-3 text-sm border-b border-gray-100">
+                        <div class="py-4 space-y-3 text-sm border-y border-gray-100">
                             <div class="flex justify-between text-gray-600 font-medium">
                                 <span>Tạm tính</span>
-                                <span class="text-gray-900 font-semibold">{{ number_format($subtotal) }}đ</span>
+                                <span class="text-gray-900 font-semibold">{{ number_format($total) }}đ</span>
                             </div>
                             <div class="flex justify-between text-gray-600 font-medium">
                                 <span>Phí vận chuyển</span>
@@ -165,7 +174,7 @@
                         <div class="pt-4 pb-6">
                             <div class="flex justify-between items-baseline mb-1">
                                 <span class="text-base font-bold text-gray-900">Tổng thanh toán</span>
-                                <span class="text-2xl font-black text-emerald-600">{{ number_format($total) }}đ</span>
+                                <span class="text-2xl font-black text-emerald-600">{{ number_format($grandTotal) }}đ</span>
                             </div>
                             <p class="text-right text-[11px] text-gray-400">(Đã bao gồm thuế VAT & phí dịch vụ)</p>
                         </div>

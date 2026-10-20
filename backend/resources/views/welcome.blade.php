@@ -210,6 +210,46 @@
     html.dark .discount-box { background: rgba(30, 41, 59, 0.6) !important; border-color: #334155 !important; }
     html.dark .trace-box { background: #022c22 !important; }
     html.dark footer.s77 { background-color: #020617 !important; }
+
+    /* ===== BỘ LỌC GIÁ ===== */
+    .pf-layout { display: grid; grid-template-columns: 270px 1fr; gap: 28px; align-items: start; }
+    .pf-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .pf-filter { position: sticky; top: 16px; border: 1px solid #E2E8F0; border-radius: 18px; padding: 22px; background: #fff; }
+    .pf-filter h4 { margin: 0 0 4px; font-size: 17px; font-weight: 800; color: #0f172a; }
+    .pf-sub { font-size: 12px; color: #64748b; margin: 0 0 14px; }
+    .pf-opt { display: flex; align-items: center; gap: 10px; padding: 9px 0; font-size: 14px; cursor: pointer; }
+    .pf-opt input { accent-color: #0B3B2C; width: 16px; height: 16px; margin: 0; }
+    .pf-sep { border: 0; border-top: 1px solid #E2E8F0; margin: 14px 0; }
+    .pf-lbl { font-size: 12px; font-weight: 700; color: #64748b; margin-bottom: 10px; text-transform: uppercase; letter-spacing: .06em; }
+    .pf-slider { position: relative; height: 22px; margin: 4px 6px 14px; }
+    .pf-track, .pf-fill { position: absolute; top: 9px; height: 4px; border-radius: 4px; }
+    .pf-track { left: 0; right: 0; background: #E2E8F0; }
+    .pf-fill { background: #0B3B2C; }
+    .pf-slider input[type=range] { position: absolute; left: -6px; width: calc(100% + 12px); top: 0; margin: 0; height: 22px; background: none; pointer-events: none; -webkit-appearance: none; appearance: none; }
+    .pf-slider input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; pointer-events: auto; width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 3px solid #0B3B2C; cursor: pointer; }
+    .pf-slider input[type=range]::-moz-range-thumb { pointer-events: auto; width: 12px; height: 12px; border-radius: 50%; background: #fff; border: 3px solid #0B3B2C; cursor: pointer; }
+    .pf-inputs { display: flex; gap: 8px; align-items: center; }
+    .pf-inputs label { flex: 1; font-size: 11px; color: #64748b; }
+    .pf-inputs input { width: 100%; margin-top: 4px; padding: 9px 10px; border: 1px solid #E2E8F0; border-radius: 10px; background: #FAF9F6; color: #0f172a; font: inherit; font-size: 13px; }
+    .pf-btns { display: flex; gap: 8px; margin-top: 16px; }
+    .pf-btns button { flex: 1; padding: 11px; border-radius: 12px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; border: 1px solid #E2E8F0; background: none; color: #0f172a; }
+    .pf-btns .pf-go { background: #0B3B2C; border-color: #0B3B2C; color: #fff; }
+    .pf-count { font-size: 13px; color: #64748b; margin: 0 0 14px; }
+
+    @media (max-width: 1024px) {
+        .pf-layout { grid-template-columns: 1fr; }
+        .pf-filter { position: static; }
+    }
+
+    html.dark .pf-filter { background: #1E293B; border-color: #334155; }
+    html.dark .pf-filter h4, html.dark .pf-opt { color: #F8FAFC; }
+    html.dark .pf-track { background: #334155; }
+    html.dark .pf-fill { background: #34d399; }
+    html.dark .pf-slider input[type=range]::-webkit-slider-thumb { background: #1E293B; border-color: #34d399; }
+    html.dark .pf-slider input[type=range]::-moz-range-thumb { background: #1E293B; border-color: #34d399; }
+    html.dark .pf-inputs input { background: #0F172A; border-color: #334155; color: #F8FAFC; }
+    html.dark .pf-btns button { border-color: #334155; color: #F8FAFC; }
+    html.dark .pf-btns .pf-go { background: #059669; border-color: #059669; }
 </style>
 </head>
 <body>
@@ -414,10 +454,14 @@
     </div>
 </section>
 
-<!-- KHỐI: TẤT CẢ SẢN PHẨM (ĐÃ THAY THẾ CHO KHỐI GỢI Ý) -->
+<!-- KHỐI: TẤT CẢ SẢN PHẨM (CÓ LỌC GIÁ) -->
+@php
+    $listProducts = $allProducts ?? $featuredProducts;
+    $maxPrice = (int) ceil(max(100000, (int) $listProducts->map(fn($p) => $p->discount_price ?? $p->base_price)->max()) / 50000) * 50000;
+@endphp
 <section class="container-wide mb-20">
     <div style="background: #ffffff; border-radius: 24px; padding: 32px; border: 1px solid #f1f5f9; box-shadow: 0 4px 16px rgba(0,0,0,0.02);">
-        
+
         <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px;">
             <div>
                 <span style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #b45309;">DANH SÁCH</span>
@@ -426,40 +470,74 @@
             <a style="color: #047857; font-weight: 700; text-decoration: none; font-size: 15px;" href="{{ route('categories.index') }}">Xem tất cả danh mục →</a>
         </div>
 
-        <div class="product-grid" style="display: grid !important; grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 24px !important; width: 100% !important;">
-            @forelse($allProducts ?? $featuredProducts as $product)
-                <div class="card" style="min-width: 0 !important; width: 100% !important; display: flex !important; flex-direction: column !important; background: #ffffff; border: 1px solid #E2E8F0; border-radius: 20px; overflow: hidden;">
-                    
-                    <div class="ph" style="position: relative; overflow: hidden; height: 190px; display: flex; align-items: center; justify-content: center; background: #F1F5F9;">
-                        <span class="badge" style="position: absolute; top: 12px; left: 12px; z-index: 2; background: rgba(255, 255, 255, 0.95); color: #0f172a; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 99px;">
-                            📍 {{ $product->location ?? 'Việt Nam' }}
-                        </span>
+        <div class="pf-layout">
+            <!-- CỘT LỌC GIÁ (BÊN TRÁI) -->
+            <aside class="pf-filter" aria-label="Lọc theo giá">
+                <h4>Lọc theo giá</h4>
+                <p class="pf-sub">Chọn mức giá phù hợp với bạn</p>
 
-                        @if(!empty($product->image))
-                            <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->title }}" style="width: 100%; height: 100%; object-fit: cover;">
-                        @else
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-                        @endif
-                    </div>
-
-                    <div class="s43" style="padding: 16px; display: flex; flex-direction: column; gap: 6px; flex-grow: 1;">
-                        <b class="s44" style="font-size: 16px; color: #0F172A; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-weight: 700; height: 44px;">
-                            {{ $product->title }}
-                        </b>
-                        <span class="s45" style="font-size: 18px; font-weight: 800; color: #059669;">
-                            {{ number_format($product->discount_price ?? $product->base_price) }}đ
-                        </span>
-                    </div>
-
-                    <a href="{{ route('products.show', $product->id) }}" class="btn" style="margin: 0 16px 16px 16px; padding: 10px 16px; background: #0B3B2C; color: #ffffff !important; text-align: center; border-radius: 12px; font-weight: 700; text-decoration: none; display: block;">
-                        Xem chi tiết
-                    </a>
+                <div id="pf-presets">
+                    <label class="pf-opt"><input type="radio" name="pf" value="0-{{ $maxPrice }}" checked> Tất cả mức giá</label>
+                    <label class="pf-opt"><input type="radio" name="pf" value="0-50000"> Dưới 50.000đ</label>
+                    <label class="pf-opt"><input type="radio" name="pf" value="50000-100000"> 50.000đ – 100.000đ</label>
+                    <label class="pf-opt"><input type="radio" name="pf" value="100000-200000"> 100.000đ – 200.000đ</label>
+                    <label class="pf-opt"><input type="radio" name="pf" value="200000-{{ $maxPrice }}"> Trên 200.000đ</label>
                 </div>
-            @empty
-                <div style="grid-column: 1 / -1; text-align: center; color: #888; padding: 30px 0;">
-                    Chưa có sản phẩm nào.
+
+                <hr class="pf-sep">
+                <div class="pf-lbl">Khoảng giá tuỳ chọn</div>
+                <div class="pf-slider">
+                    <div class="pf-track"></div><div class="pf-fill" id="pf-fill"></div>
+                    <input type="range" id="pf-rmin" min="0" max="{{ $maxPrice }}" step="5000" value="0">
+                    <input type="range" id="pf-rmax" min="0" max="{{ $maxPrice }}" step="5000" value="{{ $maxPrice }}">
                 </div>
-            @endforelse
+                <div class="pf-inputs">
+                    <label>Từ (đ)<input type="number" id="pf-nmin" min="0" step="5000" value="0"></label>
+                    <span>–</span>
+                    <label>Đến (đ)<input type="number" id="pf-nmax" min="0" step="5000" value="{{ $maxPrice }}"></label>
+                </div>
+                <div class="pf-btns">
+                    <button type="button" id="pf-reset">Xoá lọc</button>
+                    <button type="button" id="pf-apply" class="pf-go">Áp dụng</button>
+                </div>
+            </aside>
+
+            <!-- DANH SÁCH SẢN PHẨM (BÊN PHẢI) -->
+            <div>
+                <p class="pf-count" id="pf-count"></p>
+                <div class="product-grid pf-grid" id="pf-grid">
+                    @forelse($listProducts as $product)
+                        <div class="card pf-item" data-price="{{ (int) ($product->discount_price ?? $product->base_price) }}" style="min-width: 0;">
+
+                            <div class="ph">
+                                <span class="badge" style="position: absolute; top: 12px; left: 12px; z-index: 2; background: rgba(255, 255, 255, 0.95); color: #0f172a; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 99px;">
+                                    📍 {{ $product->location ?? 'Việt Nam' }}
+                                </span>
+
+                                @if(!empty($product->image))
+                                    <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->title }}">
+                                @else
+                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                                @endif
+                            </div>
+
+                            <div class="s43">
+                                <b class="s44" style="height: 44px;">{{ $product->title }}</b>
+                                <span class="s45">{{ number_format($product->discount_price ?? $product->base_price) }}đ</span>
+                            </div>
+
+                            <a href="{{ route('products.show', $product->id) }}" class="btn">Xem chi tiết</a>
+                        </div>
+                    @empty
+                        <div style="grid-column: 1 / -1; text-align: center; color: #888; padding: 30px 0;">
+                            Chưa có sản phẩm nào.
+                        </div>
+                    @endforelse
+                    <div id="pf-empty" class="hidden" style="grid-column: 1 / -1; text-align: center; color: #888; padding: 40px 0;">
+                        Không có sản phẩm trong khoảng giá này.
+                    </div>
+                </div>
+            </div>
         </div>
 
     </div>
@@ -630,6 +708,75 @@
             }
         });
     }
+</script>
+
+<!-- SCRIPT LỌC GIÁ -->
+<script>
+(function () {
+    var MAX = {{ $maxPrice }}, lo = 0, hi = MAX;
+    var $ = function (id) { return document.getElementById(id); };
+    var items = document.querySelectorAll('.pf-item');
+var grid = document.getElementById('pf-grid');
+items.forEach(function (el, i) { el.dataset.order = i; }); // nhớ thứ tự gốc
+    if (!$('pf-grid')) return;
+
+    function render() {
+    var shown = 0;
+    var filtering = lo > 0 || hi < MAX;
+
+    // Lọc: ẩn/hiện sản phẩm theo khoảng giá
+    items.forEach(function (el) {
+        var p = parseInt(el.dataset.price, 10) || 0;
+        var ok = p >= lo && (hi >= MAX || p <= hi);
+        el.classList.toggle('hidden', !ok);
+        if (ok) shown++;
+    });
+
+    // Sắp xếp: có lọc giá thì giá thấp -> cao, không lọc thì về thứ tự gốc
+    var sorted = Array.prototype.slice.call(items).sort(function (a, b) {
+        if (filtering) {
+            var d = (parseInt(a.dataset.price, 10) || 0) - (parseInt(b.dataset.price, 10) || 0);
+            if (d !== 0) return d;
+        }
+        return a.dataset.order - b.dataset.order;
+    });
+    var emptyEl = $('pf-empty');
+    sorted.forEach(function (el) { grid.insertBefore(el, emptyEl); });
+
+    $('pf-count').textContent = 'Hiển thị ' + shown + ' / ' + items.length + ' sản phẩm' + (filtering ? ' · giá thấp → cao' : '');
+    emptyEl.classList.toggle('hidden', shown > 0 || items.length === 0);
+}
+    function sync() {
+        $('pf-rmin').value = lo;  $('pf-rmax').value = hi;
+        $('pf-nmin').value = lo;  $('pf-nmax').value = hi;
+        $('pf-fill').style.left  = (lo / MAX * 100) + '%';
+        $('pf-fill').style.right = (100 - hi / MAX * 100) + '%';
+    }
+    function setRange(a, b) { lo = a; hi = Math.min(b, MAX); sync(); render(); }
+    function clearRadios() {
+        document.querySelectorAll('#pf-presets input').forEach(function (r) { r.checked = false; });
+    }
+
+    document.querySelectorAll('#pf-presets input').forEach(function (r) {
+        r.addEventListener('change', function () {
+            var v = r.value.split('-').map(Number);
+            setRange(v[0], v[1]);
+        });
+    });
+    $('pf-rmin').addEventListener('input', function () { lo = Math.min(+this.value, hi); clearRadios(); sync(); render(); });
+    $('pf-rmax').addEventListener('input', function () { hi = Math.max(+this.value, lo); clearRadios(); sync(); render(); });
+    $('pf-apply').addEventListener('click', function () {
+        var a = Math.max(0, +$('pf-nmin').value || 0);
+        var b = Math.max(a, +$('pf-nmax').value || MAX);
+        clearRadios(); setRange(a, b);
+    });
+    $('pf-reset').addEventListener('click', function () {
+        document.querySelector('#pf-presets input').checked = true;
+        setRange(0, MAX);
+    });
+
+    sync(); render();
+})();
 </script>
 </body>
 </html>

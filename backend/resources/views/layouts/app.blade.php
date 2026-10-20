@@ -14,19 +14,35 @@
         <!-- Tailwind CSS CDN -->
         <script src="https://cdn.tailwindcss.com"></script>
 
-        <!-- Alpine.js CDN (Xử lý menu dropdown xổ xuống khi bấm tên tài khoản) -->
+        <!-- Cấu hình Tailwind nhận diện Dark Mode thông qua class 'dark' -->
+        <script>
+            tailwind.config = {
+                darkMode: 'class',
+            }
+        </script>
+
+        <!-- SCRIPT XỬ LÝ LƯU TRẠNG THÁI DARK MODE (Chạy ngay khi tải trang) -->
+        <script>
+            if (localStorage.getItem('theme') === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        </script>
+
+        <!-- Alpine.js CDN -->
         <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans antialiased bg-gray-100 text-gray-800">
+    <body class="font-sans antialiased bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-200">
         <div class="min-h-screen">
             @include('layouts.navigation')
 
             <!-- Page Heading -->
             @if (isset($header))
-                <header class="bg-white shadow-sm border-b border-gray-200">
+                <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-200">
                     <div class="max-w-7xl mx-auto py-5 px-4 sm:px-6 lg:px-8">
                         {{ $header }}
                     </div>
@@ -38,5 +54,18 @@
                 {{ $slot }}
             </main>
         </div>
+
+        <!-- Hàm xử lý sự kiện khi bấm nút Bật/Tắt giao diện tối -->
+        <script>
+            function toggleDarkMode() {
+                document.documentElement.classList.toggle('dark');
+
+                if (document.documentElement.classList.contains('dark')) {
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    localStorage.setItem('theme', 'light');
+                }
+            }
+        </script>
     </body>
 </html>

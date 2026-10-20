@@ -22,15 +22,14 @@ use App\Http\Controllers\TraceabilityController;
 |--------------------------------------------------------------------------
 */
 
-// Trang chủ (Lấy đủ Sản phẩm Nổi bật, Giảm giá & Gợi ý)
+// Trang chủ
 Route::get('/', function () {
     $featuredProducts = Product::where('is_featured', true)->latest()->take(8)->get();
     $discountProducts = Product::where('is_discount', true)->orWhereNotNull('discount_price')->latest()->take(8)->get();
-    
-    // Bổ sung 4 sản phẩm gợi ý cho khối AI Powered
     $recommendedProducts = Product::inRandomOrder()->take(4)->get();
+    $allProducts = Product::latest()->get();
 
-    return view('welcome', compact('featuredProducts', 'discountProducts', 'recommendedProducts'));
+    return view('welcome', compact('featuredProducts', 'discountProducts', 'recommendedProducts', 'allProducts'));
 });
 
 // Route Danh mục sản phẩm
@@ -77,12 +76,19 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Mua hàng & Thanh toán
+    Route::get('/checkout', [CheckoutController::class, 'cart'])->name('checkout.cart');
     Route::get('/checkout/{product_id}', [CheckoutController::class, 'index'])->name('checkout.index');
     Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('checkout.process');
     Route::post('/addresses/store', [CheckoutController::class, 'storeAddress'])->name('addresses.store');
 
     // Quản lý đơn hàng người dùng
     Route::get('/don-hang', [OrderController::class, 'index'])->name('orders.index');
+    
+    // Thanh toán QR cho nhiều đơn cùng lúc
+    Route::get('/don-hang/thanh-toan-qr-gop', [OrderController::class, 'paymentQrMulti'])->name('orders.payment_qr_multi');
+    Route::post('/don-hang/upload-minh-chung-gop', [OrderController::class, 'uploadProofMulti'])->name('orders.upload_proof_multi');
+    
+    // Thanh toán QR cho 1 đơn lẻ
     Route::get('/don-hang/{id}/thanh-toan-qr', [OrderController::class, 'paymentQr'])->name('orders.payment_qr');
     Route::post('/don-hang/{id}/upload-minh-chung', [OrderController::class, 'uploadProof'])->name('orders.upload_proof');
     Route::get('/don-hang/{id}', [OrderController::class, 'show'])->name('orders.show');
@@ -125,6 +131,3 @@ Route::middleware('guest')->group(function () {
 });
 
 require __DIR__ . '/auth.php';
-Route::get('/check-php', function () {
-    phpinfo();
-});

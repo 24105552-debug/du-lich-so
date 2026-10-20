@@ -12,6 +12,9 @@
         .product-img { width: 70px; height: 70px; object-fit: cover; border-radius: 8px; }
         .btn-green { background-color: #0B3B2C; color: white; font-weight: 700; }
         .btn-green:hover { background-color: #14532D; color: white; }
+        .btn-green.disabled { background-color: #94A3B8; border-color: #94A3B8; color: #fff; pointer-events: none; }
+        .cart-check { width: 20px; height: 20px; cursor: pointer; accent-color: #0B3B2C; }
+        tr.row-unchecked { opacity: .55; }
     </style>
 </head>
 <body>
@@ -24,12 +27,19 @@
 </div>
 
 <div class="container py-2">
+    @if(session('error'))
+        <div class="alert alert-danger rounded-3">{{ session('error') }}</div>
+    @endif
+
     @if(session('cart') && count(session('cart')) > 0)
         <div class="card border-0 shadow-sm rounded-4 p-4">
             <div class="table-responsive">
                 <table class="table align-middle">
                     <thead class="table-light">
                         <tr>
+                            <th style="width: 50px;" class="text-center">
+                                <input type="checkbox" id="check-all" class="cart-check" title="Chọn tất cả" checked>
+                            </th>
                             <th>Sản phẩm</th>
                             <th>Đơn giá</th>
                             <th class="text-center">Số lượng</th>
@@ -38,13 +48,14 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @php $total = 0; @endphp
                         @foreach(session('cart') as $id => $item)
-                            @php 
+                            @php
                                 $subtotal = $item['price'] * $item['quantity'];
-                                $total += $subtotal;
                             @endphp
-                            <tr data-id="{{ $id }}">
+                            <tr data-id="{{ $id }}" data-subtotal="{{ $subtotal }}">
+                                <td class="text-center">
+                                    <input type="checkbox" class="cart-check row-check" checked>
+                                </td>
                                 <td>
                                     <div class="d-flex align-items-center gap-3">
                                         @php
@@ -78,8 +89,9 @@
             <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
                 <a href="{{ url('/') }}" class="btn btn-outline-secondary rounded-3 px-4">← Tiếp tục mua sắm</a>
                 <div class="text-end">
-                    <h5 class="mb-2">Tổng thanh toán: <span class="text-danger fs-3 fw-bold ms-2">{{ number_format($total, 0, ',', '.') }}đ</span></h5>
-                    <a href="{{ route('checkout.index', array_key_first(session('cart'))) }}" class="btn btn-green btn-lg px-5 py-2 rounded-3 mt-2">
+                    <div class="text-muted small mb-1">Đã chọn <b id="selected-count">0</b> sản phẩm</div>
+                    <h5 class="mb-2">Tổng thanh toán: <span id="selected-total" class="text-danger fs-3 fw-bold ms-2">0đ</span></h5>
+                    <a href="#" id="btn-buy" class="btn btn-green btn-lg px-5 py-2 rounded-3 mt-2 disabled">
                         Mua hàng
                     </a>
                 </div>
@@ -99,7 +111,71 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    // Cập nhật số lượng bằng AJAX
+    // ===== CHỌN SẢN PHẨM =====
+    var CHECKOUT_URL = '{{ route("checkout.cart") }}';
+    var UNCHECKED_KEY = 'cart_unchecked_ids'; // lưu các sp BỎ tick, để sp mới thêm vào mặc định được tick
+
+    function getUnchecked() {
+        try { return JSON.parse(localStorage.getItem(UNCHECKED_KEY)) || []; } catch (e) { return []; }
+    }
+    function saveUnchecked() {
+        var arr = [];
+        $('.row-check').each(function () {
+            if (!this.checked) arr.push(String($(this).closest('tr').attr('data-id')));
+        });
+        try { localStorage.setItem(UNCHECKED_KEY, JSON.stringify(arr)); } catch (e) {}
+    }
+    function formatVND(n) { return Number(n).toLocaleString('vi-VN') + 'đ'; }
+
+    function refreshSelection() {
+        var total = 0, ids = [];
+        var $rows = $('tbody tr');
+
+        $rows.each(function () {
+            var $tr = $(this);
+            var checked = $tr.find('.row-check').prop('checked');
+            $tr.toggleClass('row-unchecked', !checked);
+            if (checked) {
+                total += parseFloat($tr.attr('data-subtotal')) || 0;
+                ids.push($tr.attr('data-id'));
+            }
+        });
+
+        var count = ids.length, all = $rows.length, $all = $('#check-all');
+        $('#selected-total').text(formatVND(total));
+        $('#selected-count').text(count);
+        $all.prop('checked', count === all && all > 0);
+        $all.prop('indeterminate', count > 0 && count < all);
+
+        var $btn = $('#btn-buy');
+        if (count === 0) {
+            $btn.addClass('disabled').attr('href', '#');
+        } else {
+            var query = ids.map(function (id) { return 'items[]=' + encodeURIComponent(id); }).join('&');
+            $btn.removeClass('disabled').attr('href', CHECKOUT_URL + '?' + query);
+        }
+    }
+
+    // Khôi phục trạng thái tick sau khi trang tải lại
+    (function restore() {
+        var unchecked = getUnchecked();
+        $('tbody tr').each(function () {
+            var id = String($(this).attr('data-id'));
+            $(this).find('.row-check').prop('checked', unchecked.indexOf(id) === -1);
+        });
+        refreshSelection();
+    })();
+
+    $(document).on('change', '.row-check', function () { saveUnchecked(); refreshSelection(); });
+    $('#check-all').on('change', function () {
+        $('.row-check').prop('checked', this.checked);
+        saveUnchecked(); refreshSelection();
+    });
+    $('#btn-buy').on('click', function (e) {
+        if ($(this).hasClass('disabled')) e.preventDefault();
+    });
+
+    // ===== Cập nhật số lượng bằng AJAX =====
     $(".update-cart").change(function (e) {
         e.preventDefault();
         var ele = $(this);
@@ -107,8 +183,8 @@
             url: '{{ route("cart.update") }}',
             method: "PATCH",
             data: {
-                _token: '{{ csrf_token() }}', 
-                id: ele.parents("tr").attr("data-id"), 
+                _token: '{{ csrf_token() }}',
+                id: ele.parents("tr").attr("data-id"),
                 quantity: ele.val()
             },
             success: function (response) {
@@ -117,7 +193,7 @@
         });
     });
 
-    // Xóa sản phẩm khỏi giỏ bằng AJAX
+    // ===== Xóa sản phẩm khỏi giỏ bằng AJAX =====
     $(".remove-from-cart").click(function (e) {
         e.preventDefault();
         var ele = $(this);
@@ -126,7 +202,7 @@
                 url: '{{ route("cart.remove") }}',
                 method: "DELETE",
                 data: {
-                    _token: '{{ csrf_token() }}', 
+                    _token: '{{ csrf_token() }}',
                     id: ele.parents("tr").attr("data-id")
                 },
                 success: function (response) {
