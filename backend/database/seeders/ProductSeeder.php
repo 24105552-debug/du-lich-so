@@ -23,6 +23,7 @@ class ProductSeeder extends Seeder
         ];
 
         $catIds = [];
+        $imageMap = require database_path('seeders/image_map.php');
         foreach ($categories as $name) {
             $row = [];
             foreach (['name', 'title'] as $c) {
@@ -84,7 +85,7 @@ class ProductSeeder extends Seeder
                     'category_id'    => $catIds[$cat],
                     'title'          => $title,
                     'location'       => $location,
-                    'image'          => $images ? $images[$i % count($images)] : null,
+                    'image'          => $imageMap[$i] ?? null,
                     'base_price'     => $price,
                     'price'          => $price,
                     'is_featured'    => $featured,

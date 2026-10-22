@@ -1,3 +1,10 @@
+.env
+.env.*
+!.env.example
 node_modules
 vendor
-.env
+database/database.sqlite
+bootstrap/cache/*.php
+storage/logs/*
+mapping.txt
+public/storage/payment_proofs
