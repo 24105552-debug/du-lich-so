@@ -3,6 +3,7 @@ FROM node:22-slim AS assets
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
+RUN npm install @vitejs/plugin-vue
 COPY . .
 RUN npm run build
 
