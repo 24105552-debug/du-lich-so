@@ -17,11 +17,11 @@ RUN if [ -d dist ]; then cp -r dist/* public/build/; fi
 RUN if [ -f public/build/.vite/manifest.json ]; then cp public/build/.vite/manifest.json public/build/manifest.json; fi
 RUN if [ ! -f public/build/manifest.json ]; then find public -name "manifest.json" -exec cp {} public/build/manifest.json \; 2>/dev/null || true; fi
 
-# TỰ ĐỘNG TẠO MANIFEST.JSON CHO LARAVEL NẾU VITE CHỈ BUILD RA DẠNG DIST TĨNH
+# TỰ ĐỘNG TẠO MANIFEST.JSON CHUẨN CẤU TRÚC LARAVEL VITE (BAO GỒM KEY "SRC")
 RUN if [ ! -f public/build/manifest.json ]; then \
     JS_FILE=$(basename $(ls public/build/assets/*.js 2>/dev/null | head -n 1 || echo "app.js")); \
     CSS_FILE=$(basename $(ls public/build/assets/*.css 2>/dev/null | head -n 1 || echo "app.css")); \
-    printf '{\n  "resources/js/app.js": {"file": "assets/%s", "isEntry": true},\n  "resources/css/app.css": {"file": "assets/%s", "isEntry": true}\n}\n' "$JS_FILE" "$CSS_FILE" > public/build/manifest.json; \
+    printf '{\n  "resources/js/app.js": {\n    "file": "assets/%s",\n    "src": "resources/js/app.js",\n    "isEntry": true\n  },\n  "resources/css/app.css": {\n    "file": "assets/%s",\n    "src": "resources/css/app.css",\n    "isEntry": true\n  }\n}\n' "$JS_FILE" "$CSS_FILE" > public/build/manifest.json; \
     fi
 
 # Bước 2: Chạy Laravel bằng PHP 8.3
