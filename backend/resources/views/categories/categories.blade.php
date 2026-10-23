@@ -9,24 +9,45 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
+    <!-- Tải Tailwind CSS qua CDN trực tiếp (Đảm bảo 100% không bao giờ mất CSS trên Render) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        emerald: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                            950: '#052e16',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
-        /* Khống chế kích thước logo tuyệt đối, chống tràn màn hình */
-        .site-logo {
-            max-height: 50px !important;
-            max-width: 200px !important;
+        /* Khống chế kích thước tối đa cho Logo và Icon SVG chống phình to khi chờ CSS */
+        img.site-logo {
+            max-height: 48px !important;
             width: auto !important;
-            height: auto !important;
             object-fit: contain !important;
         }
-
-        /* Tối ưu giao diện thanh phân trang Laravel */
+        svg {
+            max-width: 100%;
+        }
+        /* Cấu hình phân trang Laravel */
         nav[role="navigation"] svg {
             width: 18px !important;
             height: 18px !important;
             display: inline-block !important;
-            vertical-align: middle;
         }
         nav[role="navigation"] {
             display: flex;
@@ -61,9 +82,9 @@
     <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
             <!-- Logo -->
-            <a href="{{ url('/') }}" class="flex items-center space-x-2" style="max-height: 50px;">
-                <img src="{{ asset('images/logo.png') }}" alt="Logo Đặc sản Việt" class="site-logo" style="max-height: 50px; max-width: 180px; object-fit: contain;" onerror="this.style.display='none'">
-                <span class="font-extrabold text-xl text-emerald-900 tracking-tight">ĐẶC SẢN VIỆT</span>
+            <a href="{{ url('/') }}" class="flex items-center space-x-3">
+                <img src="{{ asset('images/logo.png') }}" alt="Logo" class="site-logo h-12 w-auto" onerror="this.style.display='none'">
+                <span class="font-extrabold text-xl text-emerald-950 tracking-tight">ĐẶC SẢN VIỆT</span>
             </a>
 
             <!-- Menu Điều Hướng -->
@@ -84,7 +105,7 @@
                     $cartCount = array_sum(array_column(session('cart', []), 'quantity')); 
                 @endphp
                 <a href="{{ route('cart.index') }}" class="relative w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 transition" aria-label="Giỏ hàng">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M3 4h2l2.5 11h10L20 7H6"/><circle cx="9" cy="19" r="1.3"/><circle cx="17" cy="19" r="1.3"/>
                     </svg>
                     @if($cartCount > 0)
@@ -96,11 +117,11 @@
 
                 @auth
                     <a href="{{ route('dashboard') }}" class="w-10 h-10 rounded-full bg-emerald-800 text-white flex items-center justify-center hover:bg-emerald-900 transition" aria-label="Tài khoản">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>
                     </a>
                 @else
                     <a href="{{ route('login') }}" class="w-10 h-10 rounded-full bg-emerald-800 text-white flex items-center justify-center hover:bg-emerald-900 transition" aria-label="Tài khoản">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>
                     </a>
                 @endauth
             </div>
@@ -152,36 +173,36 @@
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
                 <!-- Miền Bắc -->
                 <a href="{{ request()->url() }}?category=dac-san-mien-bac" 
-                   class="flex flex-col sm:flex-row items-center p-4 bg-white rounded-2xl border transition-all duration-200 gap-3 shadow-sm hover:shadow-md hover:border-emerald-500 group {{ $currentCategory == 'dac-san-mien-bac' ? 'border-2 border-emerald-600 bg-emerald-50/40' : 'border-gray-200' }}">
-                   <div class="w-12 h-12 rounded-xl bg-emerald-100/60 text-emerald-800 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
-                       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 20l7-12 4 6 3-4 4 10H3z"/></svg>
+                   class="flex flex-col sm:flex-row items-center p-4 bg-white rounded-2xl border transition-all duration-200 gap-3 shadow-sm hover:shadow-md hover:border-emerald-500 group {{ $currentCategory == 'dac-san-mien-bac' ? 'border-2 border-emerald-600 bg-emerald-50' : 'border-gray-200' }}">
+                   <div class="w-12 h-12 rounded-xl bg-emerald-100/60 text-emerald-800 flex items-center justify-center flex-shrink-0">
+                       <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 20l7-12 4 6 3-4 4 10H3z"/></svg>
                    </div>
                    <span class="font-bold text-gray-800 text-sm sm:text-base text-center sm:text-left leading-tight">Đặc sản<br class="hidden sm:inline"> miền Bắc</span>
                 </a>
 
                 <!-- Miền Trung -->
                 <a href="{{ request()->url() }}?category=dac-san-mien-trung" 
-                   class="flex flex-col sm:flex-row items-center p-4 bg-white rounded-2xl border transition-all duration-200 gap-3 shadow-sm hover:shadow-md hover:border-emerald-500 group {{ $currentCategory == 'dac-san-mien-trung' ? 'border-2 border-emerald-600 bg-emerald-50/40' : 'border-gray-200' }}">
-                   <div class="w-12 h-12 rounded-xl bg-amber-100/60 text-amber-800 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
-                       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20h16M12 4v16M8 8h8M8 12h8"/></svg>
+                   class="flex flex-col sm:flex-row items-center p-4 bg-white rounded-2xl border transition-all duration-200 gap-3 shadow-sm hover:shadow-md hover:border-emerald-500 group {{ $currentCategory == 'dac-san-mien-trung' ? 'border-2 border-emerald-600 bg-emerald-50' : 'border-gray-200' }}">
+                   <div class="w-12 h-12 rounded-xl bg-amber-100/60 text-amber-800 flex items-center justify-center flex-shrink-0">
+                       <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20h16M12 4v16M8 8h8M8 12h8"/></svg>
                    </div>
                    <span class="font-bold text-gray-800 text-sm sm:text-base text-center sm:text-left leading-tight">Đặc sản<br class="hidden sm:inline"> miền Trung</span>
                 </a>
 
                 <!-- Miền Nam -->
                 <a href="{{ request()->url() }}?category=dac-san-mien-nam" 
-                   class="flex flex-col sm:flex-row items-center p-4 bg-white rounded-2xl border transition-all duration-200 gap-3 shadow-sm hover:shadow-md hover:border-emerald-500 group {{ $currentCategory == 'dac-san-mien-nam' ? 'border-2 border-emerald-600 bg-emerald-50/40' : 'border-gray-200' }}">
-                   <div class="w-12 h-12 rounded-xl bg-sky-100/60 text-sky-800 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
-                       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                   class="flex flex-col sm:flex-row items-center p-4 bg-white rounded-2xl border transition-all duration-200 gap-3 shadow-sm hover:shadow-md hover:border-emerald-500 group {{ $currentCategory == 'dac-san-mien-nam' ? 'border-2 border-emerald-600 bg-emerald-50' : 'border-gray-200' }}">
+                   <div class="w-12 h-12 rounded-xl bg-sky-100/60 text-sky-800 flex items-center justify-center flex-shrink-0">
+                       <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                    </div>
                    <span class="font-bold text-gray-800 text-sm sm:text-base text-center sm:text-left leading-tight">Đặc sản<br class="hidden sm:inline"> miền Nam</span>
                 </a>
 
                 <!-- Quà lưu niệm -->
                 <a href="{{ request()->url() }}?category=qua-luu-niem" 
-                   class="flex flex-col sm:flex-row items-center p-4 bg-white rounded-2xl border transition-all duration-200 gap-3 shadow-sm hover:shadow-md hover:border-emerald-500 group {{ $currentCategory == 'qua-luu-niem' ? 'border-2 border-emerald-600 bg-emerald-50/40' : 'border-gray-200' }}">
-                   <div class="w-12 h-12 rounded-xl bg-rose-100/60 text-rose-800 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
-                       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M12 8v12M3 12h18"/></svg>
+                   class="flex flex-col sm:flex-row items-center p-4 bg-white rounded-2xl border transition-all duration-200 gap-3 shadow-sm hover:shadow-md hover:border-emerald-500 group {{ $currentCategory == 'qua-luu-niem' ? 'border-2 border-emerald-600 bg-emerald-50' : 'border-gray-200' }}">
+                   <div class="w-12 h-12 rounded-xl bg-rose-100/60 text-rose-800 flex items-center justify-center flex-shrink-0">
+                       <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M12 8v12M3 12h18"/></svg>
                    </div>
                    <span class="font-bold text-gray-800 text-sm sm:text-base text-center sm:text-left leading-tight">Quà<br class="hidden sm:inline"> lưu niệm</span>
                 </a>
@@ -197,7 +218,7 @@
                     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between group">
                         <!-- Ảnh sản phẩm -->
                         <div class="relative w-full h-48 bg-slate-100 overflow-hidden flex items-center justify-center">
-                            <span class="absolute top-3 right-3 bg-emerald-700/90 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm z-10 backdrop-blur-sm">Đã xác minh</span>
+                            <span class="absolute top-3 right-3 bg-emerald-700/90 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm z-10">Đã xác minh</span>
 
                             @if(!empty($product->image))
                                 <img src="{{ asset('storage/' . ltrim($product->image, '/')) }}" alt="{{ $product->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
@@ -267,11 +288,10 @@
                     </ul>
                 </div>
                 <div>
-                    <h4 class="font-bold text-white mb-3 text-sm uppercase tracking-wider">Kết nối với chúng tôi</h4>
+                    <h4 class="font-bold text-white mb-3 text-sm uppercase tracking-wider">Kết nối</h4>
                     <div class="flex space-x-3">
-                        <a href="#" class="w-9 h-9 rounded-full bg-emerald-900 flex items-center justify-center text-white hover:bg-amber-500 hover:text-emerald-950 transition font-bold" aria-label="Facebook">f</a>
-                        <a href="#" class="w-9 h-9 rounded-full bg-emerald-900 flex items-center justify-center text-white hover:bg-amber-500 hover:text-emerald-950 transition" aria-label="YouTube"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4l14 8-14 8z"/></svg></a>
-                        <a href="#" class="w-9 h-9 rounded-full bg-emerald-900 flex items-center justify-center text-white hover:bg-amber-500 hover:text-emerald-950 transition" aria-label="Instagram"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/></svg></a>
+                        <a href="#" class="w-9 h-9 rounded-full bg-emerald-900 flex items-center justify-center text-white hover:bg-amber-500 transition font-bold" aria-label="Facebook">f</a>
+                        <a href="#" class="w-9 h-9 rounded-full bg-emerald-900 flex items-center justify-center text-white hover:bg-amber-500 transition" aria-label="YouTube"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4l14 8-14 8z"/></svg></a>
                     </div>
                 </div>
             </div>
