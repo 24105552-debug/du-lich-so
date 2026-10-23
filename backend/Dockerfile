@@ -6,14 +6,23 @@ RUN npm ci
 RUN npm install @vitejs/plugin-vue
 COPY . .
 
-# Chạy lệnh build của Vite
+# Chạy build Vite
 RUN npm run build
 
-# Xử lý kết quả build: Gom file từ dist/ hoặc public/build/ về đúng vị trí Laravel yêu cầu
+# Chuẩn hóa thư mục public/build
 RUN mkdir -p public/build
 RUN if [ -d dist ]; then cp -r dist/* public/build/; fi
+
+# Tìm và chuyển manifest.json nếu Vite có tạo sẵn ở thư mục con
 RUN if [ -f public/build/.vite/manifest.json ]; then cp public/build/.vite/manifest.json public/build/manifest.json; fi
 RUN if [ ! -f public/build/manifest.json ]; then find public -name "manifest.json" -exec cp {} public/build/manifest.json \; 2>/dev/null || true; fi
+
+# TỰ ĐỘNG TẠO MANIFEST.JSON CHO LARAVEL NẾU VITE CHỈ BUILD RA DẠNG DIST TĨNH
+RUN if [ ! -f public/build/manifest.json ]; then \
+    JS_FILE=$(basename $(ls public/build/assets/*.js 2>/dev/null | head -n 1 || echo "app.js")); \
+    CSS_FILE=$(basename $(ls public/build/assets/*.css 2>/dev/null | head -n 1 || echo "app.css")); \
+    printf '{\n  "resources/js/app.js": {"file": "assets/%s", "isEntry": true},\n  "resources/css/app.css": {"file": "assets/%s", "isEntry": true}\n}\n' "$JS_FILE" "$CSS_FILE" > public/build/manifest.json; \
+    fi
 
 # Bước 2: Chạy Laravel bằng PHP 8.3
 FROM php:8.3-cli
@@ -26,7 +35,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /app
 COPY . .
 
-# Sao chép thư mục public/build đã chuẩn hóa từ bước assets sang PHP
+# Sao chép thư mục public/build hoàn chỉnh sang PHP container
 COPY --from=assets /app/public/build ./public/build
 
 RUN composer install --no-dev --optimize-autoloader --no-interaction
