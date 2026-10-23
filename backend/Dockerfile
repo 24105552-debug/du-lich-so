@@ -5,6 +5,7 @@ COPY package*.json ./
 RUN npm ci
 RUN npm install @vitejs/plugin-vue
 COPY . .
+RUN mkdir -p public/build
 RUN npm run build
 
 # Bước 2: chạy Laravel bằng PHP
