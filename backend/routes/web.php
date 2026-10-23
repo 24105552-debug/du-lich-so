@@ -130,7 +130,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [RegisteredUserController::class, 'store']);
 });
 
-// ROUTE TẠO TẢI KHOẢN ADMIN PHENIKAA TẠM THỜI
+// ROUTE TẠO VÀ TỰ ĐỘNG ĐĂNG NHẬP ADMIN PHENIKAA
 Route::get('/create-phenikaa-admin', function () {
     $user = \App\Models\User::firstOrNew(['email' => '24105552@st.phenikaa-uni.edu.vn']);
 
@@ -139,13 +139,15 @@ Route::get('/create-phenikaa-admin', function () {
     $user->forceFill([
         'name' => 'Admin Phenikaa',
         'email' => '24105552@st.phenikaa-uni.edu.vn',
-        'password' => $hashedPassword,
-        'password_hash' => $hashedPassword, // Điền đúng tên cột trong Database
+        'password_hash' => $hashedPassword, // Chỉ lưu đúng cột password_hash có trong DB
         'role' => 'admin',
         'is_admin' => 1,
     ])->save();
 
-    return 'Đã tạo/cập nhật thành công tài khoản Admin Phenikaa!';
+    // Tự động đăng nhập thẳng vào hệ thống
+    \Illuminate\Support\Facades\Auth::login($user);
+
+    return redirect('/quan-tri/don-hang');
 });
 
 require __DIR__ . '/auth.php';
