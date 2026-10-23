@@ -130,19 +130,31 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [RegisteredUserController::class, 'store']);
 });
 
-// ROUTE TẠO VÀ TỰ ĐỘNG ĐĂNG NHẬP ADMIN PHENIKAA
+// ROUTE TẠO VÀ TỰ ĐỘNG ĐĂNG NHẬP ADMIN PHENIKAA (AN TOÀN BẤT KỲ CẤU TRÚC DB NÀO)
 Route::get('/create-phenikaa-admin', function () {
     $user = \App\Models\User::firstOrNew(['email' => '24105552@st.phenikaa-uni.edu.vn']);
-
     $hashedPassword = \Illuminate\Support\Facades\Hash::make('20060716a@');
 
-    $user->forceFill([
-        'name' => 'Admin Phenikaa',
+    $data = [
+        'name'  => 'Admin Phenikaa',
         'email' => '24105552@st.phenikaa-uni.edu.vn',
-        'password_hash' => $hashedPassword, // Chỉ lưu đúng cột password_hash có trong DB
-        'role' => 'admin',
-        'is_admin' => 1,
-    ])->save();
+    ];
+
+    // Chỉ điền các cột thực sự tồn tại trong Database
+    if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'password_hash')) {
+        $data['password_hash'] = $hashedPassword;
+    }
+    if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'password')) {
+        $data['password'] = $hashedPassword;
+    }
+    if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'role')) {
+        $data['role'] = 'admin';
+    }
+    if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'is_admin')) {
+        $data['is_admin'] = 1;
+    }
+
+    $user->forceFill($data)->save();
 
     // Tự động đăng nhập thẳng vào hệ thống
     \Illuminate\Support\Facades\Auth::login($user);
