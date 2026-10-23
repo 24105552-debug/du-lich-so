@@ -132,15 +132,18 @@ Route::middleware('guest')->group(function () {
 
 // ROUTE TẠO TẢI KHOẢN ADMIN PHENIKAA TẠM THỜI
 Route::get('/create-phenikaa-admin', function () {
-    \App\Models\User::updateOrCreate(
-        ['email' => '24105552@st.phenikaa-uni.edu.vn'],
-        [
-            'name' => 'Admin Phenikaa',
-            'password' => \Illuminate\Support\Facades\Hash::make('20060716a@'),
-            'role' => 'admin',
-            'is_admin' => 1,
-        ]
-    );
+    $user = \App\Models\User::firstOrNew(['email' => '24105552@st.phenikaa-uni.edu.vn']);
+
+    $hashedPassword = \Illuminate\Support\Facades\Hash::make('20060716a@');
+
+    $user->forceFill([
+        'name' => 'Admin Phenikaa',
+        'email' => '24105552@st.phenikaa-uni.edu.vn',
+        'password' => $hashedPassword,
+        'password_hash' => $hashedPassword, // Điền đúng tên cột trong Database
+        'role' => 'admin',
+        'is_admin' => 1,
+    ])->save();
 
     return 'Đã tạo/cập nhật thành công tài khoản Admin Phenikaa!';
 });
