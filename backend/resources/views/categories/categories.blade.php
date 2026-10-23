@@ -12,6 +12,15 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
+        /* Khống chế kích thước logo tuyệt đối, chống tràn màn hình */
+        .site-logo {
+            max-height: 50px !important;
+            max-width: 200px !important;
+            width: auto !important;
+            height: auto !important;
+            object-fit: contain !important;
+        }
+
         /* Tối ưu giao diện thanh phân trang Laravel */
         nav[role="navigation"] svg {
             width: 18px !important;
@@ -52,8 +61,8 @@
     <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
             <!-- Logo -->
-            <a href="{{ url('/') }}" class="flex items-center space-x-2">
-                <img src="{{ asset('images/logo.png') }}" alt="Logo Đặc sản Việt" class="h-14 w-auto object-contain" onerror="this.style.display='none'">
+            <a href="{{ url('/') }}" class="flex items-center space-x-2" style="max-height: 50px;">
+                <img src="{{ asset('images/logo.png') }}" alt="Logo Đặc sản Việt" class="site-logo" style="max-height: 50px; max-width: 180px; object-fit: contain;" onerror="this.style.display='none'">
                 <span class="font-extrabold text-xl text-emerald-900 tracking-tight">ĐẶC SẢN VIỆT</span>
             </a>
 
