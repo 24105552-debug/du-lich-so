@@ -7,6 +7,8 @@ RUN npm install @vitejs/plugin-vue
 COPY . .
 RUN mkdir -p public/build
 RUN npm run build
+# Tự động chuyển manifest.json ra thư mục public/build cho Laravel
+RUN if [ -f public/build/.vite/manifest.json ]; then cp public/build/.vite/manifest.json public/build/manifest.json; fi
 
 # Bước 2: chạy Laravel bằng PHP
 FROM php:8.3-cli
