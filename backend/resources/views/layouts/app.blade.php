@@ -11,17 +11,7 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
 
-        <!-- Tailwind CSS CDN -->
-        <script src="https://cdn.tailwindcss.com"></script>
-
-        <!-- Cấu hình Tailwind nhận diện Dark Mode thông qua class 'dark' -->
-        <script>
-            tailwind.config = {
-                darkMode: 'class',
-            }
-        </script>
-
-        <!-- SCRIPT XỬ LÝ LƯU TRẠNG THÁI DARK MODE (Chạy ngay khi tải trang) -->
+        <!-- SCRIPT XỬ LÝ LƯU TRẠNG THÁI DARK MODE -->
         <script>
             if (localStorage.getItem('theme') === 'dark') {
                 document.documentElement.classList.add('dark');
@@ -33,7 +23,7 @@
         <!-- Alpine.js CDN -->
         <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-        <!-- Scripts -->
+        <!-- Scripts & Styles via Vite -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-200">
@@ -55,7 +45,7 @@
             </main>
         </div>
 
-        <!-- Hàm xử lý sự kiện khi bấm nút Bật/Tắt giao diện tối -->
+        <!-- Hàm xử lý bật/tắt dark mode -->
         <script>
             function toggleDarkMode() {
                 document.documentElement.classList.toggle('dark');
